@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "ar-gql": "^0.0.6",
+    "arweave": "^1.11.6",
     "vue": "^3.2.37"
   },
   "devDependencies": {
