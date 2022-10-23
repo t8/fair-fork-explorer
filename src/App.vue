@@ -15,14 +15,14 @@
       </div>
     </div>
   </div>
-  <div class="hero is-small is-info">
+  <div class="hero is-small is-light">
     <div class="hero-body">
       <div class="container">
         <div class="columns">
           <div class="column is-6">
             <h2 class="title is-4">Fork Tree</h2>
             <div id="forkTree">
-              {{ forkTree }}
+              <JsonTreeView :data="JSON.stringify(forkTree)" :maxDepth="6" />
             </div>
           </div>
           <div class="column is-6" id="capTable">
@@ -39,8 +39,9 @@
 
 <script lang="ts">
 import Arweave from "arweave";
-import { defineComponent } from "vue";
+import { defineComponent, reactive } from "vue";
 import { all } from "ar-gql";
+import { JsonTreeView } from "json-tree-view-vue3";
 
 const client = Arweave.init({
   host: 'arweave.net',
@@ -57,6 +58,15 @@ export default defineComponent({
       forkTree: []
     }
   },
+  components: { JsonTreeView },
+  setup() {
+    const state = reactive({
+      json: `{"string":"text","number":123,"boolean":true,"array":["A","B","C"],"object":{"prop1":"value1","nestedObject":{"prop2":"value2"}}}`
+    });
+    return {
+      state
+    };
+  },
   methods: {
     async search() {
       this.searchButtonState = "is-loading";      
@@ -69,7 +79,8 @@ export default defineComponent({
         return;
       }
       // Successfully pulled a tx
-      await this.developTree(this.inputText, [{ id: this.inputText, forks: [] }]);
+      // @ts-expect-error
+      this.forkTree = await this.developTree(this.inputText, [{ id: this.inputText, forks: [] }]);
       this.searchButtonState = "";
     },
     async pullForks(id: string) {
