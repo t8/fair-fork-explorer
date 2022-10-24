@@ -33,7 +33,7 @@
     </div>
   </div>
   <div class="hero is-fullheight">
-    SUP BRO
+    <iframe :src="'https://arweave.net/' + inputText" frameborder="0" width="100%" height="100%"></iframe>
   </div>
 </template>
 
@@ -52,7 +52,7 @@ const client = Arweave.init({
 export default defineComponent({
   data() {
     return {
-      inputText: "mTCNPkgEmsvQmyqVu2NRhk3ZID6d37bLunTYqntd4rg",
+      inputText: "HuDE37wlwN-gwdkoxaWOxXsvlJaaf8b9mA9BlHuPEqU",
       searchButtonState: "",
       errorState: "",
       forkTree: []
@@ -145,10 +145,22 @@ export default defineComponent({
 
 </script>
 
-<style scoped>
+<style>
 
 .field.has-addons {
   justify-content: center;
+}
+
+.value-key {
+  overflow-x: scroll;
+}
+
+iframe {
+  display: block;       /* iframes are inline by default */
+  background: #000;
+  border: none;         /* Reset default border */
+  height: 100vh;        /* Viewport-relative units */
+  width: 100vw;
 }
 
 </style>
