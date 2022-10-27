@@ -22,11 +22,11 @@
           <div class="column is-6">
             <h2 class="title is-4">Fork Tree</h2>
             <div id="forkTree">
-              <JsonTreeView :data="JSON.stringify(forkTree)" :maxDepth="6" />
+              <JsonTreeView :data="JSON.stringify(forkTree)" @selected="selectFork" :maxDepth="6" />
             </div>
           </div>
           <div class="column is-6" id="capTable">
-            <h2 class="title is-4">Cap Table</h2>
+            <h2 class="title is-4">{{ stampCount }} Stamp<span v-if="stampCount !== 1">s</span></h2>
           </div>
         </div>
         <div class="has-text-centered">
@@ -41,7 +41,7 @@
     </div>
   </div>
   <div class="hero is-fullheight" :class="contentState">
-    <iframe :src="'https://arweave.net/' + inputText" frameborder="0" width="100%" height="100%"></iframe>
+    <iframe :src="'https://arweave.net/' + selectedFork" frameborder="0" width="100%" height="100%"></iframe>
   </div>
 </template>
 
@@ -65,7 +65,9 @@ export default defineComponent({
       searchHeroState: "is-fullheight",
       expandMenu: false,
       errorState: "",
-      forkTree: []
+      forkTree: [],
+      selectedFork: "",
+      stampCount: 0
     }
   },
   components: { JsonTreeView },
@@ -110,8 +112,10 @@ export default defineComponent({
         return;
       }
       // Successfully pulled a tx
+      this.selectedFork = this.inputText;
       // @ts-expect-error
       this.forkTree = await this.developTree(this.inputText, [{ id: this.inputText, forks: [] }]);
+      // @ts-ignore
       this.searchHeroState = "is-small";
       this.searchButtonState = "";
     },
@@ -171,6 +175,21 @@ export default defineComponent({
         }
       }
       return tree;
+    },
+    async selectFork(event: any) {
+      this.selectedFork = event.value;
+      await this.pullStampCount(this.selectedFork);
+    },
+    async pullStampCount(id: string) {
+      const res = await fetch(`https://cache.permapages.app/FMRHYgSijiUNBrFy-XqyNNXenHsCV0ThR4lGAPO4chA`);
+      const contractState = await res.json();
+      let count = 0;
+      for (const [key, value] of Object.entries(contractState.stamps)) {
+        // Pulling contract of key from format "ADDRESS:CONTRACT"
+        const meaningfulPart =  key.split(":")[1];
+        if (meaningfulPart === id) count++;
+      }
+      this.stampCount = count;
     }
   }
 });
