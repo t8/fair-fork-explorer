@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "node postInstall.cjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.2.0",
@@ -15,6 +16,7 @@
     "ar-gql": "^0.0.6",
     "arweave": "^1.11.6",
     "json-tree-view-vue3": "^0.2.2",
+    "replace-in-file": "^6.3.5",
     "vue": "^3.2.37"
   },
   "devDependencies": {
