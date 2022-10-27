@@ -1,5 +1,5 @@
 <template>
-  <div class="hero is-small is-light">
+  <div id="searchHero" class="hero is-light" :class="searchHeroState">
     <div class="hero-body">
       <div class="container">
         <div class="field has-addons">
@@ -29,10 +29,18 @@
             <h2 class="title is-4">Cap Table</h2>
           </div>
         </div>
+        <div class="has-text-centered">
+          <button id="pullTab" class="button is-info" :class="pullTabState" @click="expandMenu === false ? expandMenu = true : expandMenu = false">
+            <span class="icon">
+              <font-awesome-icon v-if="pullTabState === 'disabled'" icon="fa-arrow-up"></font-awesome-icon>
+              <font-awesome-icon v-if="pullTabState === 'activated'" icon="fa-arrow-down"></font-awesome-icon>
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
-  <div class="hero is-fullheight">
+  <div class="hero is-fullheight" :class="contentState">
     <iframe :src="'https://arweave.net/' + inputText" frameborder="0" width="100%" height="100%"></iframe>
   </div>
 </template>
@@ -54,6 +62,8 @@ export default defineComponent({
     return {
       inputText: "HuDE37wlwN-gwdkoxaWOxXsvlJaaf8b9mA9BlHuPEqU",
       searchButtonState: "",
+      searchHeroState: "is-fullheight",
+      expandMenu: false,
       errorState: "",
       forkTree: []
     }
@@ -66,6 +76,27 @@ export default defineComponent({
     return {
       state
     };
+  },
+  computed: {
+    contentState: function() {
+      if (this.searchHeroState === "is-small" && !this.expandMenu) {
+        return "is-fixed";
+      } else if (this.expandMenu) {
+        return "";
+      } else {
+        return "is-hidden";
+      }
+    },
+    pullTabState: function() {
+      // :class="expandMenu === false ? 'disabled' : 'activated'"
+      if (this.searchHeroState === "is-small" && this.expandMenu === false) {
+        return "disabled";
+      } else if (this.searchHeroState === "is-fullheight") {
+        return "is-hidden";
+      } else {
+        return "activated"
+      }
+    }
   },
   methods: {
     async search() {
@@ -81,6 +112,7 @@ export default defineComponent({
       // Successfully pulled a tx
       // @ts-expect-error
       this.forkTree = await this.developTree(this.inputText, [{ id: this.inputText, forks: [] }]);
+      this.searchHeroState = "is-small";
       this.searchButtonState = "";
     },
     async pullForks(id: string) {
@@ -161,6 +193,55 @@ iframe {
   border: none;         /* Reset default border */
   height: 100vh;        /* Viewport-relative units */
   width: 100vw;
+}
+
+.hero.is-small {
+  min-height: 0;
+}
+
+#searchHero.is-small .hero-body .container {
+  flex-shrink: 0;
+}
+
+#searchHero {
+  -webkit-transition: min-height 0.2s; 
+  -moz-transition: min-height 0.2s; 
+  -ms-transition: min-height 0.2s; 
+  -o-transition: min-height 0.2s; 
+  transition: min-height 0.2s;
+}
+
+#searchContainer {
+  -webkit-transition: flex-shrink 0.2s; 
+  -moz-transition: flex-shrink 0.2s; 
+  -ms-transition: flex-shrink 0.2s; 
+  -o-transition: flex-shrink 0.2s; 
+  transition: flex-shrink 0.2s;
+}
+
+.is-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#pullTab {
+  z-index: 100;
+}
+
+#pullTab.disabled {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 0 0 4px 4px;
+}
+
+#pullTab.activated {
+  position: relative;
+  margin: 0 auto;
 }
 
 </style>
