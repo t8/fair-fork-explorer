@@ -60,7 +60,7 @@ const client = Arweave.init({
 export default defineComponent({
   data() {
     return {
-      inputText: "HuDE37wlwN-gwdkoxaWOxXsvlJaaf8b9mA9BlHuPEqU",
+      inputText: "m863mnARkvKQDEg6L6Ha7nlrv51NeP_3SmnUhEs7W8o",
       searchButtonState: "",
       searchHeroState: "is-fullheight",
       expandMenu: false,
@@ -120,7 +120,7 @@ export default defineComponent({
       this.searchButtonState = "";
     },
     async pullForks(id: string) {
-      return await all(`query($cursor: String) {
+      const res = await all(`query($cursor: String) {
           transactions(
             tags: [
               { name: "Forked", values: "${id}" }
@@ -138,8 +138,30 @@ export default defineComponent({
             }
           }
         }`);
+        console.log(res);
+      return res;
     },
-    async developTree(id: string, tree: Array<{id: string, forks: Array<any>}>) {
+    async developTree(id: string, tree: Array<{id: string, forks: Array<any>}>, index?: number) {
+
+      if (index) {
+        for (let i = 0; i < tree[index].forks.length; i++) {
+          const res = await this.pullForks(tree[index].forks[i]);
+          for (let x = 0; x < res.length; x++) {
+            tree[index].forks[i].push({ id: res[x].node.id, forks: [] });
+          }
+        }
+      } else {
+        // Check if fork has children
+        const res = await this.pullForks(id);
+        for (let i = 0; i < res.length; i++) {
+          for (let x = 0; x < tree.length; x++) {
+            if (tree[x].id === id) {
+              tree[x].forks.push({ id: res[i].node.id, forks: [] });
+              await this.developTree(res[i].node.id, tree, x);
+            }
+          }
+        }
+      }
       // Check if fork has a parent
       let tags = (await client.transactions.get(id)).get("tags");
       let forkOf = undefined;
@@ -153,27 +175,25 @@ export default defineComponent({
       }
       if (forkOf !== undefined) {
         // Transaction has a parent
-        // Pull all of parent's children
-        const res = await this.pullForks(forkOf);
-        for (let i = 0; i < res.length; i++) {
-          // @ts-expect-error
-          tree.push({ id: res.node.id, forks: [] });
-          // @ts-expect-error
-          tree = await this.developTree(res.node.id, tree);
+        let duplicate = false;
+        for (let i = 0; i < tree.length; i++) {
+          if (tree[i].id === forkOf) duplicate = true;
         }
-      }
-      // Check if fork has children
-      const res = await this.pullForks(id);
-      for (let i = 0; i < res.length; i++) {
-        for (let x = 0; x < tree.length; x++) {
-          if (tree[x].id === id) {
-            // @ts-expect-error
-            tree[x].forks.push({ id: res.node.id, forks: [] });
-            // @ts-expect-error
-            await this.developTree(res.node.id, tree);
-          }
+        if (!duplicate) {
+          tree = [{
+            id: forkOf,
+            forks: tree
+          }];
+          await this.developTree(forkOf, tree)
         }
+        // // Pull all of parent's children
+        // const res = await this.pullForks(forkOf);
+        // for (let i = 0; i < res.length; i++) {
+        //   tree.push({ id: res[i].node.id, forks: [] });
+        //   tree = await this.developTree(res[i].node.id, tree);
+        // }
       }
+      console.log(tree);
       return tree;
     },
     async selectFork(event: any) {
@@ -208,7 +228,7 @@ export default defineComponent({
 
 iframe {
   display: block;       /* iframes are inline by default */
-  background: #000;
+  background: white;
   border: none;         /* Reset default border */
   height: 100vh;        /* Viewport-relative units */
   width: 100vw;
